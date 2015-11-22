@@ -5,7 +5,7 @@ except ImportError:
 
 setup(
     name="quepy",
-    version="0.1",
+    version="0.2",
     description="A framework to convert natural language to database queries.",
     long_description=open('README.rst').read(),
     author="Rafael Carrascosa, Gonzalo Garcia Berrotaran",
@@ -31,6 +31,6 @@ setup(
         "Topic :: Utilities",
         ],
     packages=["quepy"],
-    install_requires=["refo", "nltk", "SPARQLWrapper"],
+    install_requires=["refo", "nltk", "SPARQLWrapper", "docopt"],
     scripts=["scripts/quepy"]
 )

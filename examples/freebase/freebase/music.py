@@ -11,11 +11,10 @@
 Music related regex
 """
 
+from dsl import *
 from refo import Plus, Question
 from quepy.dsl import HasKeyword
 from quepy.parsing import Lemma, Lemmas, Pos, QuestionTemplate, Particle
-from dsl import IsBand, LabelOf, IsMemberOf, ActiveYears, MusicGenreOf, \
-    NameOf, IsAlbum, ProducedBy
 
 
 class Band(Particle):
@@ -41,9 +40,10 @@ class BandMembersQuestion(QuestionTemplate):
     regex = (regex1 | regex2 | regex3) + Question(Pos("."))
 
     def interpret(self, match):
-        member = IsMemberOf(match.band)
-        label = LabelOf(member)
-        return label, "enum"
+        group = GroupOf(match.band)
+        member = IsPerson() + IsMusicArtist() + IsMemberOf(group)
+        name = NameOf(member)
+        return name
 
 
 class FoundationQuestion(QuestionTemplate):
@@ -57,8 +57,8 @@ class FoundationQuestion(QuestionTemplate):
         (Lemma("form") | Lemma("found")) + Question(Pos("."))
 
     def interpret(self, match):
-        active_years = ActiveYears(match.band)
-        return active_years, "literal"
+        active_years = ActiveYearsOf(match.band)
+        return active_years
 
 
 class GenreQuestion(QuestionTemplate):
@@ -74,8 +74,8 @@ class GenreQuestion(QuestionTemplate):
 
     def interpret(self, match):
         genre = MusicGenreOf(match.band)
-        label = LabelOf(genre)
-        return label, "enum"
+        name = NameOf(genre)
+        return name
 
 
 class AlbumsOfQuestion(QuestionTemplate):
@@ -94,4 +94,4 @@ class AlbumsOfQuestion(QuestionTemplate):
     def interpret(self, match):
         album = IsAlbum() + ProducedBy(match.band)
         name = NameOf(album)
-        return name, "enum"
+        return name

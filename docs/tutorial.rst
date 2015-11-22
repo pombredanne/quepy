@@ -44,8 +44,8 @@ Starting a quepy project
 ------------------------
 
 To start a quepy project, you must create a quepy application.  In our
-example, our application is called dbpedia, and we create the
-application by doing:
+example, our application is called `dbpedia`, and we create the
+application by running:
 
 ::
 
@@ -63,8 +63,8 @@ It should look like this:
     .
     ├── dbpedia
     │   ├── __init__.py
-    │   ├── regex.py
-    │   ├── semantics.py
+    │   ├── basic.py
+    │   ├── dsl.py
     │   └── settings.py
     └── main.py
 
@@ -72,15 +72,15 @@ It should look like this:
 
 This is the basic structure of every quepy project.
 
-* dbpedia/regex.py: the file where you will define the regular expressions
-  that willll match natural language questions and transform them into an
+* `dbpedia/basic.py`: the file where you will define the regular expressions
+  that will match natural language questions and transform them into an
   abstract semantic representation.
-* dbpedia/semantics.py: the file where you will define the specific semantics
+* `dbpedia/dsl.py`: the file where you will define the domain specific language
   of your database schema. In the case of SPARQL, here you will be specifing
   things that usually go in the ontology: relation names and such.
-* dbpedia/settings.py: the configuration file for some aspects of the
+* `dbpedia/settings.py`: the configuration file for some aspects of the
   installation.
-* main.py: this file is a optional kickstart point where you can have all the
+* `main.py`: this file is a optional kickstart point where you can have all the
   code you need to interact with your app. If you want, you can safely remove
   this file.
 
@@ -89,32 +89,16 @@ This is the basic structure of every quepy project.
 Configuring the application
 ---------------------------
 
-The only mandatory configuration to do is to set up the tagger in
-``settings.py``. You have two choices here, either use
-`NLTK <http://nltk.org/>`_ (the default) or
-use `freeling <http://nlp.lsi.upc.edu/freeling/>`_ (supports languages other
-than English).
+First make sure you have already downloaded the necesary
+data for the `nltk tagger <http://nltk.org/>`_. If not check the
+:doc:`installation section. <installation>`
 
-If you are going to use nltk <http://nltk.org/> you should have already
-downloaded the necesary data for the tagger by doing:
-
-::
-
-    $ quepy nltkdata ~/nltk_data/
-
-Then, all the necesary data will be downloaded to ``~/nltk_data/``, but you can
-choose any other path you like.
 Now edit *dbpedia/settings.py* and add the path to the nltk data to the
-NLTK_DATA variable.
+`NLTK_DATA` variable.
 This file has some other configuration options, but we are not going to need
 them for this example.
 
-Alternatively, if you have `freeling <http://nlp.lsi.upc.edu/freeling/>`_
-installed and you want to use it instead, you should set the variables
-``USE_FREELING = False`` and ``FREELING_CMD = "/path/to/analyze"`` in
-``settings.py`` of your Quepy application. `/path/to/analyze` should be the
-path to the ``analyze`` binary provided with your freeling distribution.
-
+Also configure the `LANGUAGE`, in this example we'll use ``sparql``.
 
 .. Note::
     
@@ -141,10 +125,10 @@ Defining the regex
 
 We need to define the regular expressions that will match natural
 language questions and transform them into an abstract semantic
-representation. This will define especifically which questions the
+representation. This will define specifically which questions the
 system will be able to handle and *what* to do with them.
 
-In our example, we'll be editing the file *dbpedia/regex.py*. Let's
+In our example, we'll be editing the file *dbpedia/basic.py*. Let's
 look at an example of regular expression to handle *"What is ..."*
 questions. The whole definition would look like this:
 
@@ -152,12 +136,12 @@ questions. The whole definition would look like this:
     :linenos:
 
     from refo import Group, Question
-    from quepy.semantics import HasKeyword
-    from quepy.regex import Lemma, Pos, RegexTemplate
+    from quepy.dsl import HasKeyword
+    from quepy.parsing import Lemma, Pos, QuestionTemplate
 
-    from semantics import IsDefinedIn
+    from dsl import IsDefinedIn
 
-    class WhatIs(RegexTemplate):
+    class WhatIs(QuestionTemplate):
         """
         Regex for questions like "What is ..."
         Ex: "What is a car"
@@ -166,7 +150,7 @@ questions. The whole definition would look like this:
         target = Question(Pos("DT")) + Group(Pos("NN"), "target")
         regex = Lemma("what") + Lemma("be") + target + Question(Pos("."))
 
-        def semantics(self, match):
+        def interpret(self, match):
             thing = match.target.tokens
             target = HasKeyword(thing)
             definition = IsDefinedIn(target)
@@ -176,7 +160,7 @@ questions. The whole definition would look like this:
 Now let's discuss this procedure step by step.
 
 First of all, note that regex handlers need to be a subclass from
-:class:`quepy.regex.RegexTemplate`. They also need to define a class
+:class:`quepy.parsing.QuestionTemplate`. They also need to define a class
 attribute called ``regex`` with a refo regex.
 
 Then, we describe the structure of the input question as a regular expression,
@@ -204,60 +188,58 @@ that we want to match optionally a determiner (DT) followed by a noun
 Note that quepy can access different levels of linguistic information
 associated to the words in a question, namely their lemma and part of
 speech tag. This information needs to be associated to questions by
-analyzing them with a tagger. Quepy integrates two automatic tagger to
-analyze questions: Freeling and NLTK Tagger. See the Library Reference
-for details as how to use this analyzers within quepy.
+analyzing them with a tagger.
 
 Finally, if a regex has a successful match with an input question, the
-``semantics`` method will be called with the match. In Lines 16 to 22,
-we define the *semantics* method, which specifies the semantics of a
+``interpret`` method will be called with the match. In Lines 16 to 22,
+we define the *interpret* method, which specifies the semantics of a
 matched question:
 
 .. code-block:: python
 
-    def semantics(self, match):
+    def interpret(self, match):
         thing = match.target.tokens
         target = HasKeyword(thing)
         definition = IsDefinedIn(target)
         return definition
 
 In this example, the contents of the target variable are the argument
-of a HasKeyword predicate. The HasKeyword predicate is part of the
-vocabulary of our specific database. In contrast, the IsDefinedIn
+of a `HasKeyword` predicate. The `HasKeyword` predicate is part of the
+vocabulary of our specific database. In contrast, the `IsDefinedIn`
 predicate is part of the abstract semantics component that is
 described in the next section.
 
 
-Defining the semantics
-----------------------
+Defining the domain specific language
+-------------------------------------
 
 Quepy uses an abstract semantics as a language-independent
 representation that is then mapped to a query language. This allows
 your questions to be mapped to different query languages in a
 transparent manner.
 
-In our example, the semantics is defined in the file
-*dbpedia/semantics.py*.
+In our example, the domain specific language is defined in the file
+*dbpedia/dsl.py*.
 
-Let's see an example of semantic definition. The predicate IsDefinedIn
-was used in Line 21 of the previous example:
+Let's see an example of the dsl definition. The predicate `IsDefinedIn`
+was used in line 21 of the previous example:
 
 .. code-block:: python
 
     definition = IsDefinedIn(target)
 
-IsDefinedIn is defined in the semantics file as follows:
+`IsDefinedIn` is defined in the `dsl.py` file as follows:
 
 .. code-block:: python
 
-    from quepy.semantics import FixedRelation
+    from quepy.dsl import FixedRelation
 
     class IsDefinedIn(FixedRelation):
         relation = "rdfs:comment"
         reverse = True
 
-This means that IsDefinedIn is a Relation where the subject has
-rdf:comment. By creating a quepy class, we provide a further level of
+This means that `IsDefinedIn` is a Relation where the subject has
+`rdf:comment`. By creating a quepy class, we provide a further level of
 abstraction on this feature which allows to integrate it in regular
 expressions seamlessly.
 

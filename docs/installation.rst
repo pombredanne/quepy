@@ -1,13 +1,15 @@
 Installation
 ============
 
-Dependeces
-----------
+Dependencies
+------------
 
 * `refo <http://github.com/machinalis/refo>`_
 * `nltk <http://nltk.org/>`_ - *if you intend to use nltk tagger*
 * `SPARQLWrapper <http://pypi.python.org/pypi/SPARQLWrapper>`_ *if you intend to use the examples*
-* `graphviz <http://www.graphviz.org/>`_ *if you intend to visulize your queries*
+* `graphviz <http://www.graphviz.org/>`_ *if you intend to visualize your queries*
+* `doctopt <https://github.com/docopt/docopt>`_ *For beautiful command-line interfaces*
+
 
 
 From pip
@@ -33,7 +35,7 @@ Download the *GIT* repository from `Github <https://github.com/machinalis/quepy>
 run the install script doing:
 
 ::
-    
+
     $ cd quepy
     $ sudo python setup.py install
 
@@ -45,11 +47,11 @@ and then :ref:`check-installation`
 Checking the installation
 -------------------------
 
-to check if quepy was successufully installed do:
+To check if quepy was successfully installed run:
 
 ::
 
-    $ quepy version
+    $ quepy --version
 
 and you should obtain the version number.
 
@@ -57,10 +59,9 @@ and you should obtain the version number.
 Set up the POS tagger
 ---------------------
 
-After that you need get the backend's POS tagger. It's ok if you don't
+After that you need to download the backend's POS tagger. It's ok if you don't
 know what that is, it's safe to treat it like a black box.
-By default `nltk <http://nltk.org/>`_ is used,
-but applications can use `freeling <http://nlp.lsi.upc.edu/freeling/>`_ too.
+Quepy uses `nltk <http://nltk.org/>`_.
 
 To set up quepy to be able to use `nltk <http://nltk.org/>`_ type:
 
@@ -68,5 +69,5 @@ To set up quepy to be able to use `nltk <http://nltk.org/>`_ type:
 
     $ quepy nltkdata /some/path/you/find/convenient
 
-Also, everytime you start a new app or use one, like the dbpedia example,
-you should configure `settings.py` to point to this path you chose.
+Also, every time you start a new app or use one, like the dbpedia example,
+you should configure `settings.py` to point to the path you chose.
